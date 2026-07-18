@@ -61,16 +61,16 @@ export function mapProductToFoodId(name: string): number | null {
   // Mince meat
   if (n.includes('färs')) {
     if (n.includes('bland')) {
-      return 7002; // Blandfärs rå
+      return 2499; // Blandfärs rå nöt 50% gris 50%
     }
     if (n.includes('fläsk')) {
-      return 7003; // Fläskfärs rå
+      return 980; // Gris färs rå fett 20%
     }
     if (n.includes('nöt') || n.includes('gulasch')) {
       if (n.includes('10%') || n.includes('12%') || n.includes('mager')) {
-        return 7000; // Nötfärs 10%
+        return 951; // Nöt färs rå fett 10%
       }
-      return 7001; // Nötfärs 15%
+      return 963; // Nöt färs rå fett 15%
     }
   }
   
