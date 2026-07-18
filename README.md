@@ -64,11 +64,51 @@ Applikationen finns nu tillgänglig på [http://localhost:3000](http://localhost
 
 ---
 
-## Automatisering (Daglig Refresh)
+## Automatisering (Daglig Refresh i Molnet)
 
-För att hålla priserna uppdaterade varje morgon rekommenderas det att sätta upp ett cronjobb på din server.
+När applikationen hostas på **Coolify**, **Render**, **Vercel** eller liknande molnplattformar kan prisskrapningen automatiseras genom att anropa applikationens inbyggda HTTP API-endpoint på ett schema.
 
-Kör `crontab -e` och lägg till följande rad för att köra scrapern varje natt kl 04:00:
+### Exponerad API-endpoint: `/api/scrape`
+
+Endpointen stöder både `GET` och `POST`-anrop. Av säkerhetsskäl kräver den en autentiseringstoken i produktion för att förhindra överbelastning av servern då Playwright-instansen är resurskrävande.
+
+#### Konfiguration:
+1.  Sätt miljövariabeln `CRON_SECRET` på din server (t.ex. i Coolify eller Render dashboard) till en slumpmässig, svårgissad sträng.
+2.  Anropa endpointen med parametern `token` eller headern `x-cron-token`:
+    *   **HTTP GET:** `https://din-app.se/api/scrape?token=DITT_CRON_SECRET`
+    *   **HTTP Header:** `x-cron-token: DITT_CRON_SECRET`
+
+*Obs: I utvecklingsläge (`NODE_ENV === 'development'`) tillåts körning utan token såvida inte `CRON_SECRET` har definierats i din lokala `.env`.*
+
+#### Hur det fungerar:
+När API-endpointen anropas med en giltig token startar den skrapningen **asynkront i bakgrunden** och svarar omedelbart med HTTP-status `202 Accepted` och JSON-strukturen:
+```json
+{
+  "status": "scraping_started",
+  "message": "Daily grocery price scraping pipeline initiated in the background..."
+}
+```
+Detta förhindrar att anropet tajmar ut (då skrapningen tar ca 30 sekunder att köra) och gör att externa schemaläggare kan anropa den stabilt.
+
+### Konfigurera schemaläggning
+
+#### 1. Via Coolify (Rekommenderas)
+I din Coolify dashboard för din applikation:
+1.  Gå till fliken **Cron Jobs**.
+2.  Klicka på **Add Cron Job**.
+3.  Ange önskat schema (t.ex. `0 4 * * *` för varje morgon kl 04:00).
+4.  Ange kommandot:
+    ```bash
+    curl -X GET "http://localhost:3000/api/scrape?token=$CRON_SECRET"
+    ```
+    *(Coolify kommer att köra anropet internt i nätverket eller externt mot din container).*
+
+#### 2. Via externa schemaläggare (t.ex. Cron-Job.org / Vercel Cron)
+Ställ in en schemalagd HTTP-begäran som anropar:
+`https://din-app.se/api/scrape?token=DITT_CRON_SECRET` varje natt.
+
+#### 3. Alternativ: Köra lokalt cronjobb på servern
+Om du vill köra ett lokalt cronjobb som kör CLI-skriptet via terminalen:
 ```bash
 0 4 * * * cd /Users/ossianhempel/Developer/protein-per-krona && bun run scrape >> cron.log 2>&1
 ```
