@@ -1,193 +1,79 @@
-Welcome to your new TanStack Start app! 
+# Protein per krona 🇸🇪
 
-# Getting Started
+En fullstack-applikation byggd med **TanStack Start**, **SQLite** och **Drizzle ORM** som rankar och jämför svenska livsmedel utifrån protein per krona samt proteinkvalitet (Amino Acid Score - AAS). Applikationen uppdateras dagligen genom en automatiserad scraper (Playwright) som hämtar aktuella priser från Willys och Coop.
 
-To run this application:
+## Nyckelfunktioner
+*   **Protein per SEK-rankning (g/kr):** Hitta de absolut billigaste källorna till protein i matbutikerna idag.
+*   **Amino Acid Score (AAS) & Proteinkvalitet:** Beräknar proteinkvaliteten baserat på WHO/FAO:s (2007) referensmönster för vuxna för de 9 essentiella aminosyrorna. Visar grafiskt eventuella begränsande aminosyror (t.ex. lysin i havre/vete, metionin i baljväxter).
+*   **Dagliga priser & prishistorik:** Skrapar automatiskt priser från Willys och Coop och matchar dem mot databasen med Drizzle ORM. Visualiserar prishistorik över tid med anpassade SVG-linjediagram.
+*   **Snabba filter & sök:** Filtrera efter matbutik, livsmedelskategori (Mejeri & Ägg, Kött, Fisk, Baljväxter, Kosttillskott) samt sök direkt bland varumärken och produkter.
 
+---
+
+## Teknisk arkitektur
+
+### 1. Databas & Ingestion
+*   **Drizzle ORM + SQLite (`sqlite.db`):** WAL-läge aktiverat för högpresterande läs- och skrivoperationer.
+*   **Livsmedelsdatabasen (Livsmedelsverket):** Fullständig ingestion från Livsmedelsverkets XLSX-rådata.
+*   **AAS-beräkning:** Beräknar biologiskt värde utifrån WHO/FAO:s referensmönster för vuxna (mg per gram protein):
+    *   Histidin: 15 | Isoleucin: 30 | Leucin: 59 | Lysin: 45
+    *   Metionin + Cystein: 22
+    *   Fenylalanin + Tyrosin: 38
+    *   Treonin: 23 | Tryptofan: 6 | Valin: 39
+
+### 2. Scrapers (Playwright)
+Scraping-pipelinen (`src/scripts/run-scraper.ts`) körs headless via Playwright:
+*   Navigerar till Willys och Coop sökresultatsidor.
+*   Interceptar nätverkstrafik för att hämta butikernas interna REST API JSON-svar. Detta gör datahämtningen 100% robust jämfört med att förlita sig på sköra CSS-klasser i DOM:en.
+*   Matchar automatiskt skrapade produkter mot livsmedelsdatabasens ID:n samt rensar och sparar priser och prishistorik.
+
+---
+
+## Installation & Kom igång
+
+### Förutsättningar
+*   **Bun** eller **Node.js** (v20+)
+*   Playwright webbläsare installerade (`npx playwright install chromium`)
+
+### 1. Installera beroenden
 ```bash
 bun install
-bun --bun run dev
+# eller
+npm install
 ```
 
-# Building For Production
-
-To build this application for production:
-
+### 2. Konfigurera databas och importera Livsmedelsverket
+Skapa databasschemat och importera all data från Livsmedelsverkets rådatabas samt beräkna AAS för alla livsmedel:
 ```bash
-bun --bun run build
+bun run db:push
+bun run src/scripts/import-livsmedel.ts
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
-
+### 3. Kör scrapern manuellt
+Kör prisskrapningen mot Willys och Coop för att fylla databasen med färska matbutikspriser:
 ```bash
-bun --bun run test
+bun run scrape
 ```
 
-## Styling
+### 4. Starta applikationen lokalt
+Kör utvecklingsservern:
+```bash
+bun run dev
+```
+Applikationen finns nu tillgänglig på [http://localhost:3000](http://localhost:3000).
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+---
 
-### Removing Tailwind CSS
+## Automatisering (Daglig Refresh)
 
-If you prefer not to use Tailwind CSS:
+För att hålla priserna uppdaterade varje morgon rekommenderas det att sätta upp ett cronjobb på din server.
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
+Kör `crontab -e` och lägg till följande rad för att köra scrapern varje natt kl 04:00:
+```bash
+0 4 * * * cd /Users/ossianhempel/Developer/protein-per-krona && bun run scrape >> cron.log 2>&1
 ```
 
-Then anywhere in your JSX you can use it like so:
+---
 
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+## Licens
+Privat förvaringsplats tillhörande [ossianhempel](https://github.com/ossianhempel).
