@@ -30,4 +30,22 @@ export const catalog = [
     weight: 750, protein: 79, retailer: 'Tyngre', source: 'tyngre', sku: 'B2127',
     url: 'https://tyngre.se/kosttillskott/proteinpulver/kasein/kasein-vaniljdrommar',
   },
+  {
+    id: 'star-soy-vanilla', brand: 'Star Nutrition', name: 'Soy Protein Isolate',
+    flavour: 'Vanilj', type: 'Soja', ingredient: 'Sojaproteinisolat',
+    weight: 1000, protein: 82.1, retailer: 'Gymgrossisten', source: 'gymgrossisten', sku: '6321-034',
+    url: 'https://www.gymgrossisten.com/soy-protein-isolate-1-kg-vanilla/6321-034.html',
+  },
+  {
+    id: 'core-soy-chocolate', brand: 'Core', name: 'Soy Protein',
+    flavour: 'Choklad', type: 'Soja', ingredient: 'Sojaproteinisolat',
+    weight: 1000, protein: 86, retailer: 'Svenskt Kosttillskott', source: 'core', sku: '58833',
+    url: 'https://www.svensktkosttillskott.se/core-soy-protein?da=1-4,14-5449',
+  },
+  {
+    id: 'tyngre-pea-chocolate-toffee', brand: 'Tyngre', name: 'Veganskt Protein',
+    flavour: 'Chokladkola', type: 'Ärta', ingredient: 'Ärtproteinisolat',
+    weight: 750, protein: 73, retailer: 'Tyngre', source: 'tyngre', sku: 'B2250',
+    url: 'https://tyngre.se/kosttillskott/vegan/chokladkola-veganskt-protein',
+  },
 ];

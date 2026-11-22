@@ -1,6 +1,6 @@
 import { dayNumber, plotSegments } from './prices.js';
 
-const colours = ['#caf38a', '#7de2f5', '#ffb38a', '#c9b8ff', '#ffe184'];
+const colours = ['#155aa0', '#b04119', '#773b9d', '#00746a', '#825d01', '#bd3866', '#34530e', '#434e7d'];
 const shortDate = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const fullDate = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'long', timeZone: 'UTC' });
 const dateForDay = (day) => new Date(day * 86400000);
@@ -10,6 +10,12 @@ function svgElement(name, attributes, text) {
   for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
   if (text !== undefined) element.textContent = text;
   return element;
+}
+
+export function createSwatch(index) {
+  const marker = svgElement('svg', { viewBox: '0 0 12 12', class: 'swatch', 'aria-hidden': 'true' });
+  marker.append(svgElement('circle', { cx: 6, cy: 6, r: 5, fill: colours[index % colours.length] }));
+  return marker;
 }
 
 export function drawChart(container, series, today, days) {
@@ -27,7 +33,7 @@ export function drawChart(container, series, today, days) {
   }
 
   const width = Math.max(container.clientWidth, 225);
-  const height = Math.round(parseFloat(getComputedStyle(container).fontSize) * (width < 430 ? 12 : 15));
+  const height = Math.round(parseFloat(getComputedStyle(container).fontSize) * (width < 430 ? 12 : 14));
   const left = 36;
   const right = width - 18;
   const bottom = height - 29;

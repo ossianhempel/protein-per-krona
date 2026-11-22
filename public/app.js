@@ -1,5 +1,5 @@
 import { dayNumber, priceRank, pricePer100g } from './prices.js';
-import { drawChart } from './chart.js';
+import { createSwatch, drawChart } from './chart.js';
 
 const select = (id) => document.getElementById(id);
 const sek = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 2 });
@@ -22,6 +22,7 @@ function addNote(parent, text) {
   const note = document.createElement('small');
   note.textContent = text;
   parent.append(note);
+  return note;
 }
 
 function tableMessage(tbody, message, columns) {
@@ -47,26 +48,26 @@ function renderProducts(products, today) {
     link.textContent = productName(product);
     name.append(link);
     addNote(name, `${product.flavour} · ${number.format(product.weight)} g`);
-    addNote(name, product.ingredient);
+    addNote(name, `${product.ingredient} · ${number.format(product.protein)} g protein / 100 g`);
     const last = product.history.at(-1);
     const price = priceRank(product, today);
-    cell(row, Number.isFinite(price) ? cost.format(price) : '–');
-    cell(row, product.retailer);
-    cell(row, `${number.format(product.protein)} g`);
-    const priceCell = cell(row, Number.isFinite(price) ? sek.format(last.priceOre / 100) : missingPrice(last));
-    if (Number.isFinite(price)) addNote(priceCell, date.format(new Date(last.day)));
+    const comparable = Number.isFinite(price);
+    const normalized = cell(row, comparable ? cost.format(price) : '–');
+    normalized.className = 'price';
+    const bagPrice = comparable ? sek.format(last.priceOre / 100) : missingPrice(last);
+    const priceCell = cell(row, bagPrice);
+    addNote(priceCell, product.retailer);
+    const priceDate = comparable && last.day !== today ? date.format(new Date(last.day)) : '';
+    if (priceDate) addNote(priceCell, priceDate);
+    const mobilePrice = addNote(normalized, comparable ? `Påse ${bagPrice}` : bagPrice);
+    mobilePrice.className = 'mobile-price';
+    addNote(mobilePrice, product.retailer);
+    if (priceDate) addNote(mobilePrice, priceDate);
   }
 }
 
 function setup({ products, today }) {
   const sorted = products.toSorted((a, b) => priceRank(a, today) - priceRank(b, today));
-  const best = sorted[0];
-  const lowest = best ? priceRank(best, today) : Infinity;
-  select('best').textContent = Number.isFinite(lowest) ? cost.format(lowest) : '–';
-  select('best-product').textContent = Number.isFinite(lowest) ? productName(best) : 'Pris saknas';
-  select('count').textContent = products.length;
-  select('brands').textContent = `${new Set(products.map(({ brand }) => brand)).size} varumärken`;
-
   const latestAttempt = products.map(({ history }) => history.at(-1)?.observedAt).filter(Boolean).sort().at(-1);
   if (latestAttempt) select('updated').textContent = `Senaste priskontroll ${time.format(new Date(latestAttempt))} svensk tid.`;
 
@@ -86,11 +87,7 @@ function setup({ products, today }) {
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.checked = true;
-    const swatch = document.createElement('span');
-    swatch.className = 'swatch';
-    swatch.dataset.colour = colour % 5;
-    swatch.setAttribute('aria-hidden', 'true');
-    label.append(input, swatch, document.createTextNode(productName(product)));
+    label.append(input, createSwatch(colour), document.createTextNode(productName(product)));
     fieldset.append(label);
     return { product, colour, input };
   });
@@ -103,9 +100,9 @@ function setup({ products, today }) {
       const observation = product.history.find(({ day }) => day === datePicker.value);
       const row = tbody.insertRow();
       cell(row, productName(product));
-      cell(row, observation?.status === 'ok' ? sek.format(observation.priceOre / 100) : missingPrice(observation));
       const price = pricePer100g(observation);
-      cell(row, price === null ? '–' : cost.format(price));
+      cell(row, price === null ? '–' : cost.format(price)).className = 'price';
+      cell(row, observation?.status === 'ok' ? sek.format(observation.priceOre / 100) : missingPrice(observation));
     }
   }
 
@@ -153,5 +150,5 @@ try {
   console.error(error);
   select('chart').setAttribute('aria-label', 'Prisdata kunde inte hämtas');
   select('chart-status').textContent = 'Prisdata kunde inte hämtas. Försök igen om en stund.';
-  tableMessage(select('products'), 'Prisdata kunde inte hämtas.', 5);
+  tableMessage(select('products'), 'Prisdata kunde inte hämtas.', 3);
 }
