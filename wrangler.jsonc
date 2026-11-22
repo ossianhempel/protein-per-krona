@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "protein-per-krona",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-22",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": { "directory": "./public" },
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "PRICES",
+      "database_name": "protein-per-krona",
+      "database_id": "1a830e24-b287-4f7a-838f-f4d47061b58e"
+    }
+  ],
+  "triggers": { "crons": ["0 5 * * *"] }
+}

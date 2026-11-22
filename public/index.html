@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Jämför pris per 100 gram protein och följ prishistoriken för proteinpulver från svenska varumärken.">
+  <meta name="theme-color" content="#13251f">
+  <title>Protein per krona – jämför proteinpulver</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Till innehållet</a>
+  <header class="masthead">
+    <div class="shell bar">
+      <a class="wordmark" href="./"><span class="mark" aria-hidden="true">P</span> Protein per krona</a>
+      <nav aria-label="Huvudmeny">
+        <a href="#jamfor">Jämför</a>
+        <a href="#proteinkvalitet">Proteinkvalitet</a>
+        <a href="https://github.com/ossianhempel/protein-per-krona">Källkod</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main" class="shell">
+    <section class="intro" aria-labelledby="title">
+      <div>
+        <h1 id="title">Vad kostar<br> <em>ditt protein?</em></h1>
+        <p>Jämför proteinpulver från svenska varumärken. Se vad 100 gram protein kostar, oavsett påsens storlek.</p>
+      </div>
+      <div class="stats" aria-label="Översikt">
+        <div><span>Lägsta observerade pris</span><strong id="best">–</strong><small id="best-product"></small></div>
+        <div><span>Produkter i jämförelsen</span><strong id="count">–</strong><small id="brands"></small></div>
+      </div>
+    </section>
+    <section class="chart-card" aria-labelledby="chart-title">
+      <div class="chart-heading">
+        <div><h2 id="chart-title">Prishistorik</h2><p>Kronor per 100 g protein</p></div>
+        <label for="range" class="select-label">Period
+          <select id="range" disabled><option value="30">30 dagar</option><option value="90">90 dagar</option><option value="365">1 år</option></select>
+        </label>
+      </div>
+      <div id="chart" class="chart" role="img" aria-label="Prishistorik laddas"></div>
+      <p id="chart-status" role="status" class="chart-status">Hämtar prisobservationer …</p>
+      <fieldset id="series" class="series" hidden><legend>Visa i diagrammet</legend></fieldset>
+      <details id="history" hidden>
+        <summary>Visa observationer som tabell</summary>
+        <div class="history-control"><label for="history-date">Datum</label> <select id="history-date"></select></div>
+        <div class="scroll"><table>
+          <thead><tr><th scope="col">Produkt</th><th scope="col">Pris</th><th scope="col">Kr / 100 g protein</th></tr></thead>
+          <tbody id="history-rows"></tbody>
+        </table></div>
+      </details>
+      <noscript><p>Aktivera JavaScript för att läsa prisdata och visa jämförelsen.</p></noscript>
+    </section>
+    <section id="jamfor" class="products" aria-labelledby="compare-title">
+      <div class="section-heading">
+        <div><h2 id="compare-title">Jämför produkter</h2><p>Sorterat efter pris per 100 g protein. Frakt tillkommer.</p></div>
+        <label for="type" class="select-label">Proteintyp
+          <select id="type" disabled><option value="">Alla typer</option></select>
+        </label>
+      </div>
+      <div class="comparison scroll" tabindex="0" role="region" aria-label="Produktjämförelse">
+        <table>
+          <thead><tr><th scope="col">Produkt</th><th scope="col">Kr / 100 g protein</th><th scope="col">Butik</th><th scope="col">Protein / 100 g</th><th scope="col">Butikspris</th></tr></thead>
+          <tbody id="products"><tr><td colspan="5">Hämtar produkter …</td></tr></tbody>
+        </table>
+      </div>
+      <p class="updated" id="updated"></p>
+    </section>
+    <section id="proteinkvalitet" class="quality" aria-labelledby="quality-title">
+      <div>
+        <h2 id="quality-title">Proteinkvalitet</h2>
+        <p>DIAAS tar hänsyn till både essentiella aminosyror och hur väl de tas upp. Värdena här gäller ingredienserna i studien. Produktjämförelsen visar proteinkällan på etiketten. DIAAS för de färdiga produkterna är okänt.</p>
+        <p><a href="https://doi.org/10.1017/S0007114517000125">Mathai, Liu &amp; Stein (2017), tabell 7</a> · <a href="https://www.fao.org/4/i3124e/i3124e.pdf">FAO:s metod</a></p>
+      </div>
+      <div class="quality-data">
+        <h3>DIAAS i studien</h3>
+        <p>Referensmönster för äldre barn, ungdomar och vuxna.</p>
+        <dl><div><dt>Mjölkproteinkoncentrat</dt><dd>141</dd></div>
+          <div><dt>Vassleproteinkoncentrat</dt><dd>133</dd></div>
+          <div><dt>Sojaproteinisolat</dt><dd>98</dd></div>
+          <div><dt>Ärtproteinkoncentrat</dt><dd>73</dd></div></dl>
+      </div>
+    </section>
+    <details class="method">
+      <summary>Så räknar vi och hämtar priser</summary>
+      <p>Vi delar påsens pris med mängden protein i påsen och multiplicerar med 100. Mängden protein i påsen kommer från tillverkarens näringsdeklaration för den valda smaken och storleken.</p>
+      <p>Vi läser butikernas publika priser en gång per dag. Kampanjpriser ingår när de visas som aktuellt butikspris. Vi jämför priset för en påse utan frakt, rabattkod eller medlemsrabatt. Diagrammet lämnar en lucka när en dags pris saknas.</p>
+    </details>
+  </main>
+  <footer class="shell footer"><span>Protein per krona</span><a href="/api/prices">Öppna prisdata (JSON)</a><a href="https://github.com/ossianhempel/protein-per-krona">Källkod på GitHub</a></footer>
+</body>
+</html>
