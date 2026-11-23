@@ -40,7 +40,7 @@ npm run deploy
 
 [Föreslå en produkt på GitHub](https://github.com/ossianhempel/protein-per-krona/issues/new?title=Produktf%C3%B6rslag) och länka till butikens sida för den aktuella smaken och storleken.
 
-1. Lägg till en rad i [produktkatalogen](worker/catalog.js) med ett unikt produkt-ID, butikens variant-ID, produktlänk, smak, nettovikt och deklarerat protein i gram per 100 g. Ange proteinkällan enligt ingredienslistan.
+1. Lägg till en rad i [produktkatalogen](worker/catalog.js) med ett unikt produkt-ID, butikens variant-ID, produktlänk, smak, nettovikt och deklarerat protein i gram per 100 g. Ange proteinkällan enligt ingredienslistan. Sätt `vegan: true` för veganska varianter som ska visas när besökaren väljer ”Visa veganska produkter”.
 2. Kör `npm run probe` och jämför priset med butikens pris för en enskild förpackning. Kör sedan `npm test`.
 3. Publicera Worker-ändringen. Den dagliga prisinsamlingen tar med den nya produkten vid nästa körning. Prishistoriken börjar med den första observationen.
 

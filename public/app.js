@@ -72,9 +72,11 @@ function setup({ products, today }) {
   if (latestAttempt) select('updated').textContent = `Senaste priskontroll ${time.format(new Date(latestAttempt))} svensk tid.`;
 
   const type = select('type');
-  for (const value of new Set(products.map((product) => product.type))) type.add(new Option(value, value));
   type.disabled = false;
   type.addEventListener('change', renderComparison);
+  const includeVegan = select('include-vegan');
+  includeVegan.disabled = false;
+  includeVegan.addEventListener('change', renderProductVisibility);
 
   const range = select('range');
   range.disabled = false;
@@ -89,14 +91,21 @@ function setup({ products, today }) {
     input.checked = true;
     label.append(input, createSwatch(colour), document.createTextNode(productName(product)));
     fieldset.append(label);
-    return { product, colour, input };
+    return { product, colour, input, label };
   });
 
-  function renderHistory() {
+  function visibleProduct(product) {
+    return includeVegan.checked || !product.vegan;
+  }
+
+  function selectedSeries() {
+    return choices.filter(({ product, input }) => visibleProduct(product) && input.checked);
+  }
+
+  function renderHistory(series) {
     const tbody = select('history-rows');
     tbody.replaceChildren();
-    for (const { product, input } of choices) {
-      if (!input.checked) continue;
+    for (const { product } of series) {
       const observation = product.history.find(({ day }) => day === datePicker.value);
       const row = tbody.insertRow();
       cell(row, productName(product));
@@ -108,7 +117,7 @@ function setup({ products, today }) {
 
   function renderChartAndHistory() {
     const days = Number(range.value);
-    const series = choices.filter(({ input }) => input.checked);
+    const series = selectedSeries();
     renderChart(series, days);
     const selectedDate = datePicker.value;
     const dates = [...new Set(series.flatMap(({ product }) => product.history
@@ -117,7 +126,7 @@ function setup({ products, today }) {
     datePicker.replaceChildren(...dates.map((day) => new Option(date.format(new Date(day)), day)));
     if (dates.includes(selectedDate)) datePicker.value = selectedDate;
     history.hidden = dates.length === 0;
-    renderHistory();
+    renderHistory(series);
   }
 
   function renderChart(series, days) {
@@ -125,21 +134,32 @@ function setup({ products, today }) {
   }
 
   function renderComparison() {
-    renderProducts(sorted.filter((product) => !type.value || type.value === product.type), today);
+    renderProducts(sorted.filter((product) =>
+      visibleProduct(product) && (!type.value || type.value === product.type)), today);
+  }
+
+  function renderProductVisibility() {
+    const selectedType = type.value;
+    const types = new Set(products.filter(visibleProduct).map((product) => product.type));
+    type.length = 1;
+    for (const value of types) type.add(new Option(value, value));
+    if (types.has(selectedType)) type.value = selectedType;
+    for (const { product, label } of choices) label.hidden = !visibleProduct(product);
+    renderComparison();
+    renderChartAndHistory();
   }
 
   fieldset.hidden = false;
   fieldset.addEventListener('change', renderChartAndHistory);
   range.addEventListener('change', renderChartAndHistory);
-  datePicker.addEventListener('change', renderHistory);
+  datePicker.addEventListener('change', () => renderHistory(selectedSeries()));
   let chartWidth = chart.clientWidth;
   new ResizeObserver(() => {
     if (chart.clientWidth === chartWidth) return;
     chartWidth = chart.clientWidth;
-    renderChart(choices.filter(({ input }) => input.checked), Number(range.value));
+    renderChart(selectedSeries(), Number(range.value));
   }).observe(chart);
-  renderComparison();
-  renderChartAndHistory();
+  renderProductVisibility();
 }
 
 try {
