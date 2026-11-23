@@ -2,6 +2,8 @@
 
 [Jämför proteinpulver](https://protein-per-krona.plate-snap-admin.workers.dev/) på den svenska marknaden. Webbplatsen rankar valda förpackningar efter kronor per 100 gram deklarerat protein och visar hur priset förändras över tid.
 
+Vassle visas som standard. Välj en annan proteintyp eller alla typer med filtret som styr både prisjämförelsen och prishistoriken.
+
 Webbplatsen och den schemalagda prisinsamlingen körs på Cloudflare Workers. Cloudflare D1 lagrar prisobservationerna. GitHub innehåller källkoden.
 
 ## Data
@@ -40,7 +42,7 @@ npm run deploy
 
 [Föreslå en produkt på GitHub](https://github.com/ossianhempel/protein-per-krona/issues/new?title=Produktf%C3%B6rslag) och länka till butikens sida för den aktuella smaken och storleken.
 
-1. Lägg till en rad i [produktkatalogen](worker/catalog.js) med ett unikt produkt-ID, butikens variant-ID, produktlänk, smak, nettovikt och deklarerat protein i gram per 100 g. Ange proteinkällan enligt ingredienslistan. Sätt `vegan: true` för veganska varianter som ska visas när besökaren väljer ”Visa veganska produkter”.
+1. Lägg till en rad i [produktkatalogen](worker/catalog.js) med ett unikt produkt-ID, butikens variant-ID, produktlänk, smak, nettovikt och deklarerat protein i gram per 100 g. Ange proteinkällan enligt ingredienslistan. Sätt `vegan: true` för veganska varianter.
 2. Kör `npm run probe` och jämför priset med butikens pris för en enskild förpackning. Kör sedan `npm test`.
 3. Publicera Worker-ändringen. Den dagliga prisinsamlingen tar med den nya produkten vid nästa körning. Prishistoriken börjar med den första observationen.
 

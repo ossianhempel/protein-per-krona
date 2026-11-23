@@ -73,11 +73,12 @@ function setup({ products, today }) {
   if (latestAttempt) select('updated').textContent = `Senaste priskontroll ${time.format(new Date(latestAttempt))} svensk tid.`;
 
   const type = select('type');
+  const proteinTypes = new Set(products.map((product) => product.type));
+  proteinTypes.delete(type.value);
+  for (const value of proteinTypes) type.add(new Option(value, value));
+  type.add(new Option('Alla typer (inkl. veganska)', ''));
   type.disabled = false;
-  type.addEventListener('change', renderComparison);
-  const includeVegan = select('include-vegan');
-  includeVegan.disabled = false;
-  includeVegan.addEventListener('change', renderProductVisibility);
+  type.addEventListener('change', renderProductVisibility);
 
   const range = select('range');
   range.disabled = false;
@@ -118,7 +119,7 @@ function setup({ products, today }) {
   });
 
   function visibleProduct(product) {
-    return includeVegan.checked || !product.vegan;
+    return !type.value || product.type === type.value;
   }
 
   function selectedSeries() {
@@ -163,20 +164,9 @@ function setup({ products, today }) {
     applyHighlight();
   }
 
-  function renderComparison() {
-    renderProducts(sorted.filter((product) =>
-      visibleProduct(product) && (!type.value || type.value === product.type)), today);
-    applyHighlight();
-  }
-
   function renderProductVisibility() {
-    const selectedType = type.value;
-    const types = new Set(products.filter(visibleProduct).map((product) => product.type));
-    type.length = 1;
-    for (const value of types) type.add(new Option(value, value));
-    if (types.has(selectedType)) type.value = selectedType;
     for (const { product, label } of choices) label.hidden = !visibleProduct(product);
-    renderComparison();
+    renderProducts(sorted.filter(visibleProduct), today);
     renderChartAndHistory();
   }
 
