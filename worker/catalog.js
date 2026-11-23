@@ -48,4 +48,28 @@ export const catalog = [
     weight: 750, protein: 73, retailer: 'Tyngre', source: 'tyngre', sku: 'B2250',
     url: 'https://tyngre.se/kosttillskott/vegan/chokladkola-veganskt-protein',
   },
+  {
+    id: 'bulk-pure-whey-vanilla', brand: 'Bulk', name: 'Pure Whey Protein',
+    flavour: 'Vanilj', type: 'Vassle', ingredient: 'Vassleproteinkoncentrat',
+    weight: 1000, protein: 65, retailer: 'Bulk', source: 'bulk', sku: 'BPB-WPC8-VANI-1000',
+    url: 'https://www.bulk.com/se/products/pure-whey-protein-es/bpb-wpc8-0000?o=MTc5LTI1LDE3OC0yNg%3D%3D',
+  },
+  {
+    id: 'optimum-gold-standard-vanilla', brand: 'Optimum Nutrition', name: 'Gold Standard 100% Whey',
+    flavour: 'Vanilla Ice Cream', type: 'Vassle', ingredient: 'Vassleisolat, koncentrat och hydrolyserat isolat',
+    weight: 780, protein: 81.6, retailer: 'Gymgrossisten', source: 'gymgrossisten', sku: '6947-1165241',
+    url: 'https://www.gymgrossisten.com/100-whey-gold-std-780-g-vanilla-ice-cream/6947-1165241.html',
+  },
+  {
+    id: 'gaam-whey-vanilla', brand: 'GAAM', name: 'Whey',
+    flavour: 'Delicious Vanilla', type: 'Vassle', ingredient: 'Vassleproteinkoncentrat',
+    weight: 900, protein: 74, retailer: 'Proteinbolaget', source: 'proteinbolaget', sku: 'PB-3351-1',
+    url: 'https://proteinbolaget.se/products/gaam-whey-900-g?variant=53563808317778',
+  },
+  {
+    id: 'myprotein-impact-whey-vanilla', brand: 'Myprotein', name: 'Impact Whey Protein',
+    flavour: 'Vanilj', type: 'Vassle', ingredient: 'Vassleproteinkoncentrat',
+    weight: 900, protein: 72, retailer: 'Myprotein', source: 'myprotein', sku: '17712277',
+    url: 'https://www.myprotein.se/p/kosttillskott/myprotein-impact-whey-protein/10530943/?variation=17712277',
+  },
 ];

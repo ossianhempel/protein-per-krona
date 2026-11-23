@@ -1,10 +1,24 @@
-function jsonLdProduct(html) {
+import { readBulkOffer } from './bulk.js';
+
+function structuredOffer(html, product) {
   for (const [, text] of html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)) {
+    let data;
     try {
-      const data = JSON.parse(text);
-      if (data?.['@type'] === 'Product') return data;
+      data = JSON.parse(text);
     } catch {
-      // Ignore unrelated invalid JSON-LD blocks.
+      continue;
+    }
+    for (const entry of data?.['@graph'] ?? [data]) {
+      const variants = entry?.['@type'] === 'ProductGroup' ? entry.hasVariant ?? [] : [entry];
+      for (const variant of variants) {
+        if (variant?.['@type'] !== 'Product') continue;
+        const found = Array.isArray(variant.offers)
+          ? variant.offers.find((item) => item.sku === product.sku && item.url === product.url)
+          : variant.sku === product.sku && variant.offers?.url === product.url ? variant.offers : null;
+        if (found?.['@type'] === 'Offer') {
+          return { price: found.price, currency: found.priceCurrency, availability: found.availability };
+        }
+      }
     }
   }
   return null;
@@ -38,15 +52,12 @@ export function readOffer(html, product) {
   } else if (product.source === 'mmsports') {
     offer = mmSportsOffer(html, product);
   } else {
-    const data = jsonLdProduct(html);
-    const found = product.source === 'core'
-      ? data?.offers?.find((item) => item.sku === product.sku && item.url === product.url)
-      : data?.sku === product.sku && data.offers?.url === product.url ? data.offers : null;
-    if (found?.['@type'] === 'Offer') {
-      offer = { price: found.price, currency: found.priceCurrency, availability: found.availability };
-    }
+    offer = structuredOffer(html, product);
   }
+  return normalizeOffer(offer);
+}
 
+function normalizeOffer(offer) {
   if (offer?.currency !== 'SEK') throw new Error('Exact offer or SEK currency missing');
   const stock = offer.availability?.split('/').at(-1);
   if (['OutOfStock', 'SoldOut', 'PreOrder', 'BackOrder', 'Discontinued'].includes(stock)) {
@@ -62,14 +73,21 @@ export function readOffer(html, product) {
 }
 
 export async function fetchOffer(product, fetchPage = fetch) {
-  const response = await fetchPage(product.url, {
-    headers: {
-      'User-Agent': 'ProteinPerKrona/1.0 (+https://github.com/ossianhempel/protein-per-krona)',
-      'Accept-Language': 'sv-SE,sv;q=0.9',
-    },
-    redirect: 'manual',
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  async function fetchPageForStore(url, headers = {}) {
+    const response = await fetchPage(url, {
+      headers: {
+        'User-Agent': 'ProteinPerKrona/1.0 (+https://github.com/ossianhempel/protein-per-krona)',
+        'Accept-Language': 'sv-SE,sv;q=0.9',
+        ...headers,
+      },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response;
+  }
+
+  if (product.source === 'bulk') return normalizeOffer(await readBulkOffer(product, fetchPageForStore));
+  const response = await fetchPageForStore(product.url);
   return readOffer(await response.text(), product);
 }

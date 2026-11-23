@@ -1,6 +1,6 @@
 # Protein per krona
 
-[Jämför proteinpulver](https://protein-per-krona.plate-snap-admin.workers.dev/) från svenska varumärken. Webbplatsen rankar valda förpackningar efter kronor per 100 gram deklarerat protein och visar hur priset förändras över tid.
+[Jämför proteinpulver](https://protein-per-krona.plate-snap-admin.workers.dev/) på den svenska marknaden. Webbplatsen rankar valda förpackningar efter kronor per 100 gram deklarerat protein och visar hur priset förändras över tid.
 
 Webbplatsen och den schemalagda prisinsamlingen körs på Cloudflare Workers. Cloudflare D1 lagrar prisobservationerna. GitHub innehåller källkoden.
 
@@ -44,10 +44,12 @@ npm run deploy
 2. Kör `npm run probe` och jämför priset med butikens pris för en enskild förpackning. Kör sedan `npm test`.
 3. Publicera Worker-ändringen. Den dagliga prisinsamlingen tar med den nya produkten vid nästa körning. Prishistoriken börjar med den första observationen.
 
-Gymgrossisten, MM Sports, Svenskt Kosttillskott och Tyngre har redan parsare. En butik med ett nytt prisformat behöver en parsare i [worker/retailers.js](worker/retailers.js).
+Gymgrossisten, MM Sports, Svenskt Kosttillskott, Tyngre, Bulk, Proteinbolaget och Myprotein stöds. En butik med ett nytt prisformat behöver stöd i [prisinsamlingen](worker/retailers.js).
 
 ## Licens
 
 Projektets kod är tillgänglig under [MIT](LICENSE). De kopierade Marketingskills-filerna i `.agents/skills` och `.claude/skills` har en [separat upphovsrättsnotis](THIRD_PARTY_LICENSES.md).
 
 Diagrammet använder varumärkenas logotyper för att identifiera produkterna. Logotyperna omfattas inte av projektets MIT-licens. Källor är [Orklas årsrapport, sidan 20](https://etiskhandel.no/wp-content/uploads/2026/04/Orkla-rapport-2025-gjelder-Orkla-ASA-Orkla-Foods-Orkla-Snacks.pdf#page=20) för Star Nutrition, [MM Sports](https://www.mmsports.se/Body-Science) för Body Science, [produktförpackningen hos Svenskt Kosttillskott](https://www.svensktkosttillskott.se/core-whey-protein?da=1-7852,14-8) för Core och [Tyngre](https://tyngre.se/) för Tyngre.
+
+Övriga logotyper kommer från [Bulk](https://www.bulk.com/se/), [Optimum Nutrition](https://www.optimumnutrition.com/), [GAAM](https://www.gaamnutrition.com/) och [Myprotein](https://www.myprotein.se/).

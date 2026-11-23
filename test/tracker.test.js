@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { dayNumber, plotSegments, pricePer100g, priceRank } from '../public/prices.js';
 import { catalog } from '../worker/catalog.js';
 import worker, { collect } from '../worker/index.js';
-import { readOffer } from '../worker/retailers.js';
+import { fetchOffer, readOffer } from '../worker/retailers.js';
 
 const tyngre = catalog.find(({ id }) => id === 'tyngre-whey-vanilla');
 const core = catalog.find(({ source }) => source === 'core');
@@ -54,6 +54,44 @@ test('Gymgrossisten and MM Sports report the current one-bag price for the targe
   assert.deepEqual(readOffer(starPage, star), { status: 'ok', priceOre: 39900 });
   assert.deepEqual(readOffer(bodyPage, body), { status: 'ok', priceOre: 37900 });
   assert.throws(() => readOffer(bodyPage, { ...body, variant: '54509' }), /Exact offer/);
+});
+
+test('a product group keeps the price tied to the requested Myprotein variant', () => {
+  const target = catalog.find(({ source }) => source === 'myprotein');
+  const variant = (sku, offers) => ({ '@type': 'Product', sku, offers });
+  const data = { '@graph': [{ '@type': 'ProductGroup', hasVariant: [
+    variant('wrong-flavour', offer(target, { price: 199 })),
+    variant(target.sku, offer(target, { url: target.url + '9', price: 299 })),
+    variant(target.sku, offer(target, { price: 455 })),
+  ] }] };
+  const page = `<script type="application/ld+json">${JSON.stringify(data)}</script>`;
+  assert.deepEqual(readOffer(page, target), { status: 'ok', priceOre: 45500 });
+});
+
+test('Bulk uses the guest price and stock for the resolved Swedish variant', async () => {
+  const target = catalog.find(({ source }) => source === 'bulk');
+  const settings = ['x-api-key', 'environment-id', 'website-code', 'store-view-code', 'store-code', 'customer-group'];
+  const priceForSku = (sku, inStock = true) => async (url, init) => {
+    const request = new URL(url);
+    if (request.pathname === '/se/configs.json') {
+      return Response.json({ data: settings.map((field) => ({ key: `commerce-${field}`, value: `swedish-${field}` })) });
+    }
+    assert.equal(request.pathname, '/se/cs-graphql');
+    assert.deepEqual(JSON.parse(request.searchParams.get('variables')), {
+      sku: 'BPB-WPC8-0000',
+      optionIds: [btoa('configurable/179/25'), btoa('configurable/178/26')],
+    });
+    const headers = new Headers(init.headers);
+    for (const field of settings) {
+      assert.equal(headers.get(field === 'x-api-key' ? field : `magento-${field}`), `swedish-${field}`);
+    }
+    return Response.json({ data: { refineProduct: {
+      sku, inStock, price: { final: { amount: { value: 425, currency: 'SEK' } } },
+    } } });
+  };
+  assert.deepEqual(await fetchOffer(target, priceForSku(target.sku)), { status: 'ok', priceOre: 42500 });
+  assert.deepEqual(await fetchOffer(target, priceForSku(target.sku, false)), { status: 'unavailable', priceOre: null });
+  await assert.rejects(() => fetchOffer(target, priceForSku('another-size')), /Exact offer/);
 });
 
 test('rank uses kronor per 100 g of protein and ignores stale or unavailable prices', () => {

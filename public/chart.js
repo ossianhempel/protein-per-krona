@@ -1,7 +1,10 @@
 import { dayNumber, plotSegments } from './prices.js';
 import { chartControls } from './chart-interaction.js';
 
-const colours = ['#155aa0', '#b04119', '#773b9d', '#00746a', '#825d01', '#bd3866', '#34530e', '#434e7d'];
+const colours = [
+  '#155aa0', '#b04119', '#773b9d', '#00746a', '#825d01', '#bd3866',
+  '#34530e', '#434e7d', '#5c6510', '#7d3522', '#00738d', '#aa2351',
+];
 const shortDate = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const dateForDay = (day) => new Date(day * 86400000);
 
@@ -33,7 +36,8 @@ export function drawChart(container, series, today, days, onSelect) {
   }
 
   const width = container.clientWidth;
-  const gap = width < 500 ? 55 : 44;
+  const gap = 55;
+  const labelInset = 28;
   const height = Math.max(230, plots.length * gap + 38);
   const left = 36;
   const right = width - (width < 500 ? 108 : 168);
@@ -90,9 +94,9 @@ export function drawChart(container, series, today, days, onSelect) {
 
   const labels = plots.map((plot) => ({ plot, point: plot.segments.at(-1).at(-1) }))
     .sort((a, b) => a.point.y - b.point.y);
-  let labelY = 20 - gap;
+  let labelY = labelInset - gap;
   const anchors = labels.map(({ plot, point }, index) => {
-    const limit = height - 20 - (labels.length - index - 1) * gap;
+    const limit = height - labelInset - (labels.length - index - 1) * gap;
     labelY = Math.max(labelY + gap, Math.min(point.y, limit));
     const labelX = right + 13;
     if (point.day === last) {

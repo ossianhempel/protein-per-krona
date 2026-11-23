@@ -3,6 +3,10 @@ const brandLogos = {
   'Body Science': 'body-science.png',
   Core: 'core.png',
   Tyngre: 'tyngre.png',
+  Bulk: 'bulk.png',
+  'Optimum Nutrition': 'optimum-nutrition.png',
+  GAAM: 'gaam.png',
+  Myprotein: 'myprotein.png',
 };
 const date = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'long', timeZone: 'UTC' });
 const sek = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 2 });
