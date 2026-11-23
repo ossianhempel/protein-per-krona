@@ -16,41 +16,31 @@
     <div class="shell bar">
       <a class="wordmark" href="./">Protein per krona</a>
       <nav aria-label="Huvudmeny">
-        <a href="#jamfor">Jämför</a>
         <a href="#prishistorik">Prishistorik</a>
+        <a href="#jamfor">Jämför</a>
         <a href="#proteinkvalitet">Proteinkvalitet</a>
       </nav>
     </div>
   </header>
   <main id="main" class="shell">
-    <section id="jamfor" class="products" aria-labelledby="title">
+    <section id="prishistorik" class="chart-section" aria-labelledby="title">
       <header class="section-heading">
         <div>
-          <h1 id="title">Jämför proteinpulver</h1>
-          <p>Pris per 100 g protein, exklusive frakt.</p>
+          <h1 id="title">Rekommenderat köp just nu:</h1>
+          <p id="recommendation" role="status">Hämtar priser …</p>
         </div>
-        <label for="type" class="select-label">Proteintyp
-          <select id="type" autocomplete="off" disabled><option value="Vassle" selected>Vassle</option></select>
-        </label>
+        <div class="chart-filters">
+          <label for="type" class="select-label">Proteintyp
+            <select id="type" autocomplete="off" disabled><option value="Vassle" selected>Vassle</option></select>
+          </label>
+          <label for="range" class="select-label">Period
+            <select id="range" disabled><option value="30">30 dagar</option><option value="90">90 dagar</option><option value="365">1 år</option></select>
+          </label>
+        </div>
       </header>
-      <div class="comparison">
-        <table>
-          <thead><tr><th scope="col">Produkt</th><th scope="col">Kr / 100 g protein</th><th scope="col">Butikspris</th></tr></thead>
-          <tbody id="products"><tr><td colspan="3">Hämtar produkter …</td></tr></tbody>
-        </table>
-      </div>
-      <p id="updated" class="updated" role="status"></p>
       <noscript><p>Aktivera JavaScript för att visa priserna.</p></noscript>
-    </section>
-    <section id="prishistorik" class="history" aria-labelledby="chart-title">
-      <header class="section-heading">
-        <div><h2 id="chart-title">Prishistorik</h2><p>Kronor per 100 g protein</p></div>
-        <label for="range" class="select-label">Period
-          <select id="range" disabled><option value="30">30 dagar</option><option value="90">90 dagar</option><option value="365">1 år</option></select>
-        </label>
-      </header>
       <div id="chart" class="chart" role="group" aria-label="Prishistorik laddas"></div>
-      <p id="chart-status" role="status" class="chart-status">Hämtar prisobservationer …</p>
+      <p role="status" class="chart-status">Kr / 100 g protein. <span id="chart-status">Hämtar prisobservationer …</span></p>
       <div class="chart-actions">
         <p>Peka för att se priset. Klicka på en linje eller etikett för att markera produkten.</p>
         <button type="button" id="clear-highlight" disabled>Rensa markering</button>
@@ -64,6 +54,21 @@
           <tbody id="history-rows"></tbody>
         </table>
       </details>
+    </section>
+    <section id="jamfor" class="products" aria-labelledby="products-title">
+      <header class="section-heading">
+        <div>
+          <h2 id="products-title">Jämför proteinpulver</h2>
+          <p>Pris per 100 g protein, exklusive frakt.</p>
+        </div>
+      </header>
+      <div class="comparison">
+        <table>
+          <thead><tr><th scope="col">Produkt</th><th scope="col">Kr / 100 g protein</th><th scope="col">Butikspris</th></tr></thead>
+          <tbody id="products"><tr><td colspan="3">Hämtar produkter …</td></tr></tbody>
+        </table>
+      </div>
+      <p id="updated" class="updated" role="status"></p>
     </section>
     <section id="proteinkvalitet" class="quality" aria-labelledby="quality-title">
       <div>

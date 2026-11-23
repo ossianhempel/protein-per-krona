@@ -18,6 +18,26 @@ function productName(product) {
   return `${product.brand} ${product.name}`;
 }
 
+function productLink(product) {
+  const link = document.createElement('a');
+  link.href = product.url;
+  link.textContent = productName(product);
+  return link;
+}
+
+function renderRecommendation(product, today) {
+  const recommendation = select('recommendation');
+  const price = product ? priceRank(product, today) : Infinity;
+  if (!Number.isFinite(price)) {
+    recommendation.textContent = 'Inga aktuella priser för urvalet.';
+    return;
+  }
+  const last = product.history.at(-1);
+  const priceDate = last.day === today ? '' : ` · Pris från ${date.format(new Date(last.day))}`;
+  recommendation.replaceChildren(productLink(product),
+    ` · ${cost.format(price)} / 100 g protein hos ${product.retailer}${priceDate}`);
+}
+
 function addNote(parent, text) {
   const note = document.createElement('small');
   note.textContent = text;
@@ -44,10 +64,7 @@ function renderProducts(products, today) {
     const row = tbody.insertRow();
     row.dataset.productId = product.id;
     const name = cell(row);
-    const link = document.createElement('a');
-    link.href = product.url;
-    link.textContent = productName(product);
-    name.append(link);
+    name.append(productLink(product));
     addNote(name, `${product.flavour} · ${number.format(product.weight)} g`);
     addNote(name, `${product.ingredient} · ${number.format(product.protein)} g protein / 100 g`);
     const last = product.history.at(-1);
@@ -166,7 +183,9 @@ function setup({ products, today }) {
 
   function renderProductVisibility() {
     for (const { product, label } of choices) label.hidden = !visibleProduct(product);
-    renderProducts(sorted.filter(visibleProduct), today);
+    const visibleProducts = sorted.filter(visibleProduct);
+    renderRecommendation(visibleProducts[0], today);
+    renderProducts(visibleProducts, today);
     renderChartAndHistory();
   }
 
@@ -189,6 +208,7 @@ try {
   setup(await response.json());
 } catch (error) {
   console.error(error);
+  select('recommendation').textContent = 'Prisdata kunde inte hämtas.';
   select('chart').setAttribute('aria-label', 'Prisdata kunde inte hämtas');
   select('chart-status').textContent = 'Prisdata kunde inte hämtas. Försök igen om en stund.';
   tableMessage(select('products'), 'Prisdata kunde inte hämtas.', 3);
