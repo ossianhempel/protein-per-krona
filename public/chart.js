@@ -1,8 +1,8 @@
 import { dayNumber, plotSegments } from './prices.js';
+import { chartControls } from './chart-interaction.js';
 
 const colours = ['#155aa0', '#b04119', '#773b9d', '#00746a', '#825d01', '#bd3866', '#34530e', '#434e7d'];
 const shortDate = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-const fullDate = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'long', timeZone: 'UTC' });
 const dateForDay = (day) => new Date(day * 86400000);
 
 function svgElement(name, attributes, text) {
@@ -18,13 +18,13 @@ export function createSwatch(index) {
   return marker;
 }
 
-export function drawChart(container, series, today, days) {
+export function drawChart(container, series, today, days, onSelect) {
   const end = dayNumber(today);
   const plots = series.map(({ product, colour }) => ({
     colour: colours[colour % colours.length],
-    label: `${product.brand} ${product.name}`,
+    product,
     segments: plotSegments(product.history, end - days + 1, end),
-  }));
+  })).filter(({ segments }) => segments.length > 0);
   const points = plots.flatMap(({ segments }) => segments.flat());
   if (points.length === 0) {
     container.replaceChildren();
@@ -32,15 +32,17 @@ export function drawChart(container, series, today, days) {
     return 'Inga prisobservationer för urvalet.';
   }
 
-  const width = Math.max(container.clientWidth, 225);
-  const height = Math.round(parseFloat(getComputedStyle(container).fontSize) * (width < 430 ? 12 : 14));
+  const width = container.clientWidth;
+  const gap = width < 500 ? 55 : 44;
+  const height = Math.max(230, plots.length * gap + 38);
   const left = 36;
-  const right = width - 18;
+  const right = width - (width < 500 ? 108 : 168);
   const bottom = height - 29;
   const top = 12;
   const first = Math.min(...points.map(({ day }) => day));
   const last = Math.max(...points.map(({ day }) => day));
   const dateCount = new Set(points.map(({ day }) => day)).size;
+  const dotRadius = dateCount > 45 ? 2 : 4;
   const low = Math.min(...points.map(({ price }) => price));
   const high = Math.max(...points.map(({ price }) => price));
   const step = Math.max(5, Math.ceil((high - low) / 20) * 5);
@@ -63,23 +65,45 @@ export function drawChart(container, series, today, days) {
     svg.append(svgElement('text', { x: x(day), y: height - 6, 'text-anchor': anchor }, shortDate.format(dateForDay(day))));
   }
 
-  for (const { colour, label, segments } of plots) {
+  const groups = new Map();
+  for (const plot of plots) {
+    const { product, colour } = plot;
+    plot.segments = plot.segments.map((segment) => segment.map((point) =>
+      ({ ...point, x: x(point.day), y: y(point.price) })));
+    const group = svgElement('g', { class: 'chart-series', 'data-product-id': product.id });
+    group.style.setProperty('--brand-colour', colour);
+    svg.append(group);
+    groups.set(product.id, group);
+    const { segments } = plot;
     for (const segment of segments) {
       if (segment.length > 1) {
-        svg.append(svgElement('polyline', {
-          points: segment.map(({ day, price }) => `${x(day)},${y(price)}`).join(' '),
-          fill: 'none', stroke: colour, 'stroke-width': 2.5, 'stroke-linejoin': 'round',
+        group.append(svgElement('polyline', {
+          points: segment.map(({ x, y }) => `${x},${y}`).join(' '),
+          'stroke-linejoin': 'round',
         }));
       }
-      for (const { day, price } of segment) {
-        const dot = svgElement('circle', { cx: x(day), cy: y(price), r: dateCount > 45 ? 2 : 4, fill: colour });
-        dot.append(svgElement('title', {}, `${label}, ${fullDate.format(dateForDay(day))}: ${price.toFixed(2).replace('.', ',')} kr`));
-        svg.append(dot);
+      for (const point of segment) {
+        group.append(svgElement('circle', { cx: point.x, cy: point.y, r: dotRadius }));
       }
     }
   }
 
-  container.replaceChildren(svg);
+  const labels = plots.map((plot) => ({ plot, point: plot.segments.at(-1).at(-1) }))
+    .sort((a, b) => a.point.y - b.point.y);
+  let labelY = 20 - gap;
+  const anchors = labels.map(({ plot, point }, index) => {
+    const limit = height - 20 - (labels.length - index - 1) * gap;
+    labelY = Math.max(labelY + gap, Math.min(point.y, limit));
+    const labelX = right + 13;
+    if (point.day === last) {
+      groups.get(plot.product.id).append(svgElement('path', {
+        d: `M${point.x + 5} ${point.y} L${labelX - 3} ${labelY}`,
+        class: 'chart-leader',
+      }));
+    }
+    return { plot, point, x: labelX, y: labelY };
+  });
+  container.replaceChildren(...chartControls(container, svg, plots, anchors, dotRadius, onSelect));
   const count = dateCount === 1 ? 'En dag med prisdata' : `${dateCount} dagar med prisdata`;
   container.setAttribute('aria-label', `Kronor per 100 gram protein. ${count}. Värdena finns i tabellen nedan.`);
   if (dateCount === 1) return 'Första mätningen. Linjer visas när det finns priser för flera dagar i följd.';

@@ -42,6 +42,7 @@ function renderProducts(products, today) {
   tbody.replaceChildren();
   for (const product of products) {
     const row = tbody.insertRow();
+    row.dataset.productId = product.id;
     const name = cell(row);
     const link = document.createElement('a');
     link.href = product.url;
@@ -84,14 +85,36 @@ function setup({ products, today }) {
   const datePicker = select('history-date');
   const fieldset = select('series');
   const chart = select('chart');
+  const clearHighlight = select('clear-highlight');
+  const highlighted = new Set();
   const choices = products.map((product, colour) => {
     const label = document.createElement('label');
+    label.dataset.productId = product.id;
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.checked = true;
     label.append(input, createSwatch(colour), document.createTextNode(productName(product)));
     fieldset.append(label);
     return { product, colour, input, label };
+  });
+
+  function applyHighlight() {
+    clearHighlight.disabled = highlighted.size === 0;
+    for (const item of document.querySelectorAll('[data-product-id]')) {
+      const active = highlighted.has(item.dataset.productId);
+      item.dataset.highlight = active ? 'selected' : highlighted.size ? 'muted' : '';
+      if (item.hasAttribute('aria-pressed')) item.setAttribute('aria-pressed', String(active));
+    }
+  }
+
+  function toggleHighlight(id) {
+    if (!highlighted.delete(id)) highlighted.add(id);
+    applyHighlight();
+  }
+
+  clearHighlight.addEventListener('click', () => {
+    highlighted.clear();
+    applyHighlight();
   });
 
   function visibleProduct(product) {
@@ -108,11 +131,13 @@ function setup({ products, today }) {
     for (const { product } of series) {
       const observation = product.history.find(({ day }) => day === datePicker.value);
       const row = tbody.insertRow();
+      row.dataset.productId = product.id;
       cell(row, productName(product));
       const price = pricePer100g(observation);
       cell(row, price === null ? '–' : cost.format(price)).className = 'price';
       cell(row, observation?.status === 'ok' ? sek.format(observation.priceOre / 100) : missingPrice(observation));
     }
+    applyHighlight();
   }
 
   function renderChartAndHistory() {
@@ -130,12 +155,18 @@ function setup({ products, today }) {
   }
 
   function renderChart(series, days) {
-    select('chart-status').textContent = drawChart(chart, series, today, days);
+    select('chart-status').textContent = drawChart(chart, series, today, days, toggleHighlight);
+    const plotted = new Set([...chart.querySelectorAll('.chart-series')].map((series) => series.dataset.productId));
+    for (const id of highlighted) {
+      if (!plotted.has(id)) highlighted.delete(id);
+    }
+    applyHighlight();
   }
 
   function renderComparison() {
     renderProducts(sorted.filter((product) =>
       visibleProduct(product) && (!type.value || type.value === product.type)), today);
+    applyHighlight();
   }
 
   function renderProductVisibility() {

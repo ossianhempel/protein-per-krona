@@ -52,8 +52,12 @@
           <select id="range" disabled><option value="30">30 dagar</option><option value="90">90 dagar</option><option value="365">1 år</option></select>
         </label>
       </header>
-      <div id="chart" class="chart" role="img" aria-label="Prishistorik laddas"></div>
+      <div id="chart" class="chart" role="group" aria-label="Prishistorik laddas"></div>
       <p id="chart-status" role="status" class="chart-status">Hämtar prisobservationer …</p>
+      <div class="chart-actions">
+        <p>Peka för att se priset. Klicka på en linje eller etikett för att markera produkten.</p>
+        <button type="button" id="clear-highlight" disabled>Rensa markering</button>
+      </div>
       <fieldset id="series" class="series" hidden><legend>Visa i diagrammet</legend></fieldset>
       <details id="history" hidden>
         <summary>Visa observationer som tabell</summary>
