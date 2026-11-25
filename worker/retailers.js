@@ -12,9 +12,9 @@ function structuredOffer(html, product) {
       const variants = entry?.['@type'] === 'ProductGroup' ? entry.hasVariant ?? [] : [entry];
       for (const variant of variants) {
         if (variant?.['@type'] !== 'Product') continue;
-        const found = Array.isArray(variant.offers)
-          ? variant.offers.find((item) => item.sku === product.sku && item.url === product.url)
-          : variant.sku === product.sku && variant.offers?.url === product.url ? variant.offers : null;
+        const offers = Array.isArray(variant.offers) ? variant.offers : [variant.offers];
+        const found = offers.find((item) => item?.url === product.url
+          && (product.source === 'shopify' || (Array.isArray(variant.offers) ? item.sku : variant.sku) === product.sku));
         if (found?.['@type'] === 'Offer') {
           return { price: found.price, currency: found.priceCurrency, availability: found.availability };
         }

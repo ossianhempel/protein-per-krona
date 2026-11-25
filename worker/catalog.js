@@ -1,6 +1,18 @@
 // Each ID identifies one flavour, pack size and retailer. Define a new ID for a new variant.
 export const catalog = [
   {
+    id: 'atron-whey-vanilla', brand: 'Atron', name: 'Wheyprotein',
+    flavour: 'Vaniljdrömmar', type: 'Vassle', ingredient: 'Vassleproteinkoncentrat',
+    weight: 750, protein: 73.8, retailer: 'Atron', source: 'shopify',
+    url: 'https://atronstore.com/products/wheyprotein-750g?variant=53300758544727',
+  },
+  {
+    id: 'ironvision-whey-brownie', brand: 'IronVision', name: 'Whey',
+    flavour: 'Brownie', type: 'Vassle', ingredient: 'Vassleproteinkoncentrat',
+    weight: 750, protein: 69.5, retailer: 'IronVision', source: 'shopify',
+    url: 'https://ironvisionstore.com/products/whey-cinnamon-cereal-copy?variant=52941573325142',
+  },
+  {
     id: 'star-whey80-vanilla', brand: 'Star Nutrition', name: 'Whey-80',
     flavour: 'Vanilj', type: 'Vassle', ingredient: 'Vassleproteinkoncentrat',
     weight: 1000, protein: 76.2, retailer: 'Gymgrossisten', source: 'gymgrossisten', sku: '587',
